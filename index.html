@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vòng Quay May Mắn</title>
+    <style>
+        body {
+            text-align: center;
+            padding-top: 50px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('/images/VQMM_1920X1080-01.jpg');
+            /* Default for PC */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+
+        /* Tablet (768px - 1024px) */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            body {
+                background-image: url('/images/VQMM_800x600-01.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                min-height: 100vh;
+            }
+        }
+
+        /* Mobile (dưới 768px) */
+        @media (max-width: 767px) {
+            body {
+                background-image: url('/images/VQMM_414x736-01.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                min-height: 100vh;
+            }
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            left: 57%;
+            top: 13vh;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 96%;
+            border-radius: 50%;
+            transition: transform 10s cubic-bezier(0.2, 0.7, 0.3, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            top: 46%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .pointer:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup.active .popup-content {
+            transform: scale(1);
+        }
+
+        .popup-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right,
+                    rgba(255, 255, 255, 0.3) 0%,
+                    rgba(255, 255, 255, 0) 60%);
+            transform: rotate(30deg);
+            z-index: 1;
+        }
+
+        .popup-content h2 {
+            color: #e91e63;
+            font-size: 28px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-content p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #555;
+            position: relative;
+            z-index: 2;
+        }
+
+        #close-popup {
+            background: linear-gradient(45deg, #e91e63, #ff5722);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+            outline: none;
+        }
+
+        #close-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(233, 30, 99, 0.4);
+        }
+
+        #close-popup:active {
+            transform: translateY(1px);
+        }
+
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.8);
+            animation: explode 1.5s ease-out infinite;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1);
+                opacity: 0;
+                box-shadow: 0 0 0px 20px rgba(255, 255, 255, 0);
+            }
+        }
+
+        .firework:nth-child(1) {
+            --tx: -100px;
+            --ty: -50px;
+            left: 20%;
+            top: 30%;
+            animation-delay: 0.5s;
+            background: #ff0000;
+        }
+
+        .firework:nth-child(2) {
+            --tx: 100px;
+            --ty: -80px;
+            left: 80%;
+            top: 20%;
+            animation-delay: 1s;
+            background: #ffff00;
+        }
+
+        .firework:nth-child(3) {
+            --tx: -80px;
+            --ty: 70px;
+            left: 30%;
+            top: 70%;
+            animation-delay: 1.5s;
+            background: #00ff00;
+        }
+
+        .firework:nth-child(4) {
+            --tx: 120px;
+            --ty: 50px;
+            left: 70%;
+            top: 60%;
+            animation-delay: 0.8s;
+            background: #00ffff;
+        }
+
+        .firework:nth-child(5) {
+            --tx: -60px;
+            --ty: -30px;
+            left: 50%;
+            top: 40%;
+            animation-delay: 1.2s;
+            background: #ff00ff;
+        }
+
+        .popup-form {
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup.active .popup-form {
+            transform: scale(1);
+        }
+
+        .popup-form h3 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            color: #e91e63;
+            font-weight: 600;
+        }
+
+        .popup-form .form-note {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+
+        .form-row input:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: #e91e63;
+            box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.2);
+        }
+
+        .popup-form button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #e91e63, #ff5722);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+        }
+
+        .popup-form button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(233, 30, 99, 0.4);
+        }
+
+        .popup-form button:active {
+            transform: translateY(1px);
+        }
+
+        @media (max-width: 480px) {
+
+            .popup-content,
+            .popup-form {
+                padding: 25px 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-row input,
+            .form-row select {
+                width: 100%;
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            animation: confetti-fall 5s linear forwards;
+            z-index: 10;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Phần HTML giữ nguyên như bạn cung cấp -->
+    <div class="wheel-container">
+        <img id="wheel" class="wheel" src="/images/vong-quay.png" alt="Vòng quay may mắn">
+        <img id="pointer" src="images/spin.png" class="pointer" alt="Kim chỉ">
+        <audio id="spinSound" src="sounds/Am_thanh_vong_quay_chiec_non_ky_dieu-www_tiengdong_com.mp3" loop></audio>
+        <audio id="winSound" src="sounds/nhac_nen_mo_dau_game_show_rung_chuong_vang-www_tiengdong_com.mp3"></audio>
+    </div>
+
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+
+            <h2>🎉 Chúc mừng <span id="winner-name">Tên khách</span>!</h2>
+            <p>Bạn đã trúng <strong id="prize-name"></strong></p>
+            <button id="close-popup">Đóng</button>
+        </div>
+    </div>
+
+    <div id="form-popup" class="popup">
+        <div class="popup-form">
+            <h3 class="form-title">🎁 Nhập thông tin để quay</h3>
+            <p class="form-note">*Vui lòng nhập đúng thông tin để nhận ưu đãi</p>
+
+            <div class="form-row">
+                <input type="text" id="name" placeholder="Họ tên" required />
+                <input type="tel" id="phone" placeholder="SĐT" required />
+            </div>
+
+            <div class="form-row">
+                <select id="province">
+                    <option value="">Tỉnh</option>
+                </select>
+                <select id="district" disabled>
+                    <option value="">Huyện</option>
+                </select>
+                <select id="ward" disabled>
+                    <option value="">Xã</option>
+                </select>
+            </div>
+
+            <button id="submit-info">Xác nhận thông tin</button>
+        </div>
+    </div>
+    <script>
+        window.onload = () => {
+            localStorage.removeItem("user-info");
+        };
+
+        const prizes = [
+            { name: "Áo phông Fubao", weight: 12 },
+            { name: "Túi xách Fubao", weight: 15 },
+            { name: "Voucher ưu đãi 20% học phí", weight: 25 },
+            { name: "Bộ tài liệu học tập", weight: 15 },
+            { name: "Vở ghi chép Fubao", weight: 15 },
+            { name: "Học bổng 50% khóa học tiếng Trung", weight: 5 },
+            { name: "Móc khóa Fubao", weight: 11 },
+            { name: "Học bổng 100% khóa học tiếng Trung", weight: 2 },
+            { name: "IPad Pro M4 512GB", weight: 0 }
+        ];
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function getRandomPrize(prizes) {
+            const filteredPrizes = prizes.filter(p => p.weight > 0);
+            const totalWeight = prizes.reduce((sum, p) => sum + p.weight, 0);
+            const rand = Math.random() * totalWeight;
+            let cumulative = 0;
+            for (let i = 0; i < prizes.length; i++) {
+                cumulative += prizes[i].weight;
+                if (rand < cumulative) return { prize: prizes[i], index: i };
+            }
+            return { prize: prizes[prizes.length - 1], index: prizes.length - 1 };
+        }
+
+        function getRotationAngle(index, totalSectors) {
+            const degreesPerSector = 360 / totalSectors;
+            const offset = Math.random() * (degreesPerSector - 25);
+            const stopAngle = index * degreesPerSector + degreesPerSector / 2 - offset;
+            const fullSpins = 10 * 360;
+            return fullSpins + (360 - stopAngle);
+        }
+        document.getElementById("pointer").addEventListener("click", async () => {
+            const userInfo = JSON.parse(localStorage.getItem("user-info"));
+
+            if (!userInfo) {
+                document.getElementById("form-popup").classList.add("active");
+                return;
+            }
+
+            if (isSpinning) return;
+            isSpinning = true;
+
+            // Lấy element audio
+            const spinSound = document.getElementById("spinSound");
+            const winSound = document.getElementById("winSound");
+
+            // Phát nhạc quay và loop
+            spinSound.currentTime = 0;
+            spinSound.play();
+
+            const { prize, index } = getRandomPrize(prizes);
+            const angle = getRotationAngle(index, prizes.length);
+            currentRotation += angle;
+
+            const wheel = document.getElementById("wheel");
+            wheel.style.transition = "transform 10s cubic-bezier(0.2, 0.7, 0.3, 1)";
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            const updatePromise = updatePrizeInGoogleSheet(userInfo.phone, prize.name)
+                .catch(err => {
+                    console.error("Lỗi cập nhật giải thưởng:", err);
+                    alert("Có lỗi xảy ra khi cập nhật giải thưởng.");
+                });
+
+            // Chờ kết thúc animation quay bánh (6s)
+            await new Promise(resolve => setTimeout(resolve, 10200));
+
+            // Dừng nhạc quay
+            spinSound.pause();
+            spinSound.currentTime = 0;
+
+            // Phát nhạc chiến thắng
+            winSound.currentTime = 0;
+            winSound.play();
+
+            await updatePromise;
+
+            showPrizePopup(prize.name);
+
+            isSpinning = false;
+            localStorage.removeItem("user-info");
+        });
+        // document.getElementById("pointer").addEventListener("click", async () => {
+        //     const userInfo = JSON.parse(localStorage.getItem("user-info"));
+
+        //     if (!userInfo) {
+        //         document.getElementById("form-popup").classList.add("active");
+        //         return;
+        //     }
+
+        //     if (isSpinning) return;
+        //     isSpinning = true;
+
+        //     const { prize, index } = getRandomPrize(prizes);
+        //     const angle = getRotationAngle(index, prizes.length);
+        //     currentRotation += angle;
+
+        //     const wheel = document.getElementById("wheel");
+        //     wheel.style.transition = "transform 6s ease-out";
+        //     wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+        //     const updatePromise = updatePrizeInGoogleSheet(userInfo.phone, prize.name)
+        //         .catch(err => {
+        //             console.error("Lỗi cập nhật giải thưởng:", err);
+        //             alert("Có lỗi xảy ra khi cập nhật giải thưởng.");
+        //         });
+
+        //     await new Promise(resolve => setTimeout(resolve, 6200));
+
+        //     await updatePromise;
+
+        //     showPrizePopup(prize.name);
+
+        //     isSpinning = false;
+        //     localStorage.removeItem("user-info");
+        // });
+
+        document.getElementById("submit-info").addEventListener("click", async () => {
+            document.getElementById("submit-info").disabled = true;
+            document.getElementById("submit-info").innerText = "Đang xử lý...";
+            const name = document.getElementById("name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const province = document.getElementById("province").value;
+            const district = document.getElementById("district").value;
+            const ward = document.getElementById("ward").value;
+            const userAgent = navigator.userAgent;
+            if (!name || !phone || !province || !district || !ward) {
+                alert("Vui lòng điền đầy đủ thông tin.");
+                return;
+            }
+
+            if (!/^\d{10,11}$/.test(phone)) {
+                alert("Số điện thoại không hợp lệ.");
+                return;
+            }
+
+            try {
+
+                const userInfo = { name, phone, province, district, ward, prize: "", userAgent };
+                localStorage.setItem("user-info", JSON.stringify(userInfo));
+                const checkResponse = await saveUserToGoogleSheet(userInfo);
+                if (checkResponse.exists) {
+                    alert("Số điện thoại đã được sử dụng. Vui lòng nhập số khác.");
+                    document.getElementById("submit-info").disabled = false;
+                    document.getElementById("submit-info").innerText = "Xác nhận thông tin";
+                    return;
+                }
+                document.getElementById("form-popup").classList.remove("active");
+                document.getElementById("pointer").style.display = "block";
+                alert("Thông tin đã được lưu. Hãy nhấn nút quay!");
+                document.getElementById("submit-info").disabled = false;
+                document.getElementById("submit-info").innerText = "Xác nhận thông tin";
+            } catch (err) {
+                console.error("Lỗi:", err);
+                alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
+                document.getElementById("submit-info").disabled = false;
+                document.getElementById("submit-info").innerText = "Xác nhận thông tin";
+            }
+        });
+
+        async function checkPhoneNumber(phone) {
+            const response = await fetch(`https://script.google.com/macros/s/AKfycbyEBohsF4LXRZMmB7sS-NcF4w8v-S-cAiOdOjGZhYMs-eGvpyroQaniEGa4C28TseXs/exec?action=checkPhone&phone=${encodeURIComponent(phone)}`);
+            return await response.json();
+        }
+
+
+        async function saveUserToGoogleSheet(data) {
+            const response = await fetch("https://script.google.com/macros/s/AKfycbyEBohsF4LXRZMmB7sS-NcF4w8v-S-cAiOdOjGZhYMs-eGvpyroQaniEGa4C28TseXs/exec", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: JSON.stringify({ ...data, action: "saveUser" })
+            });
+
+            const result = await response.json();
+            return result;
+        }
+
+        async function updatePrizeInGoogleSheet(phone, prize) {
+            await fetch("https://script.google.com/macros/s/AKfycbyEBohsF4LXRZMmB7sS-NcF4w8v-S-cAiOdOjGZhYMs-eGvpyroQaniEGa4C28TseXs/exec", {
+                method: "POST",
+                body: JSON.stringify({ action: "updatePrize", phone, prize }),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            });
+        }
+
+        function showPrizePopup(prizeName) {
+            document.getElementById("prize-name").innerText = prizeName;
+            document.getElementById("popup").classList.add("active");
+            createConfetti();
+        }
+
+        document.getElementById("close-popup").addEventListener("click", () => {
+            document.getElementById("popup").classList.remove("active");
+            resetWheel();
+            resetForm();
+            // document.getElementById("pointer").style.display = "none";
+        });
+
+        function resetWheel() {
+            const wheel = document.getElementById("wheel");
+            wheel.style.transition = "none";
+            wheel.style.transform = "rotate(0deg)";
+            currentRotation = 0;
+        }
+
+        function resetForm() {
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("province").selectedIndex = 0;
+            document.getElementById("district").innerHTML = '<option value="">Chọn Quận / Huyện</option>';
+            document.getElementById("district").disabled = true;
+            document.getElementById("ward").innerHTML = '<option value="">Chọn Phường / Xã</option>';
+            document.getElementById("ward").disabled = true;
+        }
+
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            const popupContent = document.querySelector('.popup-content');
+
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.width = Math.random() * 8 + 5 + 'px';
+                confetti.style.height = Math.random() * 8 + 5 + 'px';
+                popupContent.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Địa chỉ - giữ nguyên
+        const provinceSelect = document.getElementById("province");
+        const districtSelect = document.getElementById("district");
+        const wardSelect = document.getElementById("ward");
+
+        fetch('https://provinces.open-api.vn/api/?depth=3')
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(province => {
+                    const opt = document.createElement("option");
+                    opt.value = province.name;
+                    opt.textContent = province.name;
+                    opt.dataset.code = province.code;
+                    opt.dataset.districts = JSON.stringify(province.districts);
+                    provinceSelect.appendChild(opt);
+                });
+            });
+
+        provinceSelect.addEventListener("change", () => {
+            const selected = provinceSelect.selectedOptions[0];
+            const districts = JSON.parse(selected.dataset.districts || "[]");
+
+            districtSelect.innerHTML = '<option value="">Chọn Quận / Huyện</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường / Xã</option>';
+            wardSelect.disabled = true;
+
+            if (districts.length) {
+                districtSelect.disabled = false;
+                districts.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d.name;
+                    opt.textContent = d.name;
+                    opt.dataset.wards = JSON.stringify(d.wards);
+                    districtSelect.appendChild(opt);
+                });
+            } else {
+                districtSelect.disabled = true;
+            }
+        });
+
+        districtSelect.addEventListener("change", () => {
+            const selected = districtSelect.selectedOptions[0];
+            const wards = JSON.parse(selected.dataset.wards || "[]");
+
+            wardSelect.innerHTML = '<option value="">Chọn Phường / Xã</option>';
+            if (wards.length) {
+                wardSelect.disabled = false;
+                wards.forEach(w => {
+                    const opt = document.createElement("option");
+                    opt.value = w.name;
+                    opt.textContent = w.name;
+                    wardSelect.appendChild(opt);
+                });
+            } else {
+                wardSelect.disabled = true;
+            }
+        });
+
+        // function randomName() {
+        //     const firstNames = ["An", "Bình", "Chi", "Dũng", "Hương", "Minh", "Ngọc", "Phương", "Quân", "Thảo"];
+        //     const lastNames = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Vũ", "Đặng", "Bùi", "Đỗ", "Hồ"];
+        //     return lastNames[Math.floor(Math.random() * lastNames.length)] + " " + firstNames[Math.floor(Math.random() * firstNames.length)];
+        // }
+
+        // function randomPhone() {
+        //     // Sinh số điện thoại 10 số bắt đầu 09, 08 hoặc 07
+        //     const prefixes = ["090", "091", "092", "093", "094", "095", "096", "097", "098", "099", "070", "079", "089"];
+        //     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        //     let number = "";
+        //     for (let i = 0; i < 7; i++) {
+        //         number += Math.floor(Math.random() * 10);
+        //     }
+        //     return prefix + number;
+        // }
+
+        // async function uploadRandomUsersAndPrizes(n = 1000) {
+        //     let successCount = 0;
+        //     for (let i = 0; i < n; i++) {
+        //         const name = randomName();
+        //         const phone = randomPhone();
+        //         const { prize } = getRandomPrize(prizes);
+
+        //         const userInfo = {
+        //             name,
+        //             phone,
+        //             province: "Hà Nội",
+        //             district: "Ba Đình",
+        //             ward: "Phúc Xá",
+        //             prize: prize.name,
+        //             userAgent: "random-generator"
+        //         };
+
+        //         try {
+        //             await saveUserToGoogleSheet(userInfo);
+        //             successCount++;
+        //             console.log(`Uploaded ${i + 1}/${n}: ${name} - ${phone} - Prize: ${prize.name}`);
+        //         } catch (err) {
+        //             console.error(`Error at record ${i + 1}:`, err);
+        //         }
+        //     }
+        //     console.log(`Hoàn thành. Tổng upload thành công: ${successCount}/${n}`);
+        // }
+
+        // // Gọi chạy thử:
+        // uploadRandomUsersAndPrizes(1000);
+    </script>
+
+</body>
+
+</html>
