@@ -465,6 +465,11 @@
             </div>
 
             <div class="form-group">
+                <label for="address">Địa chỉ</label>
+                <input type="text" id="address" class="form-control" placeholder="Nhập địa chỉ" required />
+            </div>
+
+            <!-- <div class="form-group">
                 <label for="province">Tỉnh/Thành phố</label>
                 <select id="province" class="form-control" required>
                     <option value="">Chọn Tỉnh/Thành phố</option>
@@ -483,7 +488,7 @@
                 <select id="ward" class="form-control" disabled required>
                     <option value="">Chọn Phường/Xã</option>
                 </select>
-            </div>
+            </div> -->
 
             <button id="submit-info" class="btn">Xác nhận thông tin</button>
         </div>
@@ -497,13 +502,13 @@
 
             // Prize configuration
             const prizes = [
-                { name: "Áo phông Fubao", weight: 12 },
+                { name: "Áo phông Fubao", weight: 6 },
                 { name: "Túi xách Fubao", weight: 15 },
-                { name: "Voucher ưu đãi 20% học phí", weight: 25 },
+                { name: "Voucher ưu đãi 20% học phí", weight: 35 },
                 { name: "Bộ tài liệu học tập", weight: 15 },
-                { name: "Vở ghi chép Fubao", weight: 15 },
-                { name: "Học bổng 50% khóa học tiếng Trung", weight: 5 },
-                { name: "Móc khóa Fubao", weight: 11 },
+                { name: "Vở ghi chép Fubao", weight: 10 },
+                { name: "Học bổng 50% khóa học tiếng Trung", weight: 7 },
+                { name: "Móc khóa Fubao", weight: 10 },
                 { name: "Học bổng 100% khóa học tiếng Trung", weight: 2 },
                 { name: "IPad Pro M4 512GB", weight: 0 }
             ];
@@ -526,9 +531,11 @@
             // Form elements
             const nameInput = document.getElementById("name");
             const phoneInput = document.getElementById("phone");
-            const provinceSelect = document.getElementById("province");
-            const districtSelect = document.getElementById("district");
-            const wardSelect = document.getElementById("ward");
+            const addressInput = document.getElementById("address");
+
+            // const provinceSelect = document.getElementById("province");
+            // const districtSelect = document.getElementById("district");
+            // const wardSelect = document.getElementById("ward");
 
             // Utility functions
             function getRandomPrize(prizes) {
@@ -587,11 +594,12 @@
             function resetForm() {
                 nameInput.value = "";
                 phoneInput.value = "";
-                provinceSelect.selectedIndex = 0;
-                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-                districtSelect.disabled = true;
-                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-                wardSelect.disabled = true;
+                addressInput.value = "";
+                // provinceSelect.selectedIndex = 0;
+                // districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+                // districtSelect.disabled = true;
+                // wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+                // wardSelect.disabled = true;
             }
 
             // Event handlers
@@ -653,13 +661,15 @@
 
                 const name = nameInput.value.trim();
                 const phone = phoneInput.value.trim();
-                const province = provinceSelect.value;
-                const district = districtSelect.value;
-                const ward = wardSelect.value;
+                const address = addressInput.value.trim();
+
+                // const province = provinceSelect.value;
+                // const district = districtSelect.value;
+                // const ward = wardSelect.value;
                 const userAgent = navigator.userAgent;
 
                 // Validation
-                if (!name || !phone || !province || !district || !ward) {
+                if (!name || !phone) {
                     alert("Vui lòng điền đầy đủ thông tin.");
                     submitInfoBtn.disabled = false;
                     submitInfoBtn.textContent = "Xác nhận thông tin";
@@ -674,7 +684,7 @@
                 }
 
                 try {
-                    const userInfo = { name, phone, province, district, ward, prize: "", userAgent };
+                    const userInfo = { name, phone, address, prize: "", userAgent };
 
                     // Check if phone number exists
                     const checkResponse = await saveUserToGoogleSheet(userInfo);
@@ -721,59 +731,59 @@
                 });
             }
 
-            // Address selection logic
-            fetch('https://provinces.open-api.vn/api/?depth=3')
-                .then(res => res.json())
-                .then(data => {
-                    data.forEach(province => {
-                        const opt = document.createElement("option");
-                        opt.value = province.name;
-                        opt.textContent = province.name;
-                        opt.dataset.code = province.code;
-                        opt.dataset.districts = JSON.stringify(province.districts);
-                        provinceSelect.appendChild(opt);
-                    });
-                });
+            // // Address selection logic
+            // fetch('https://provinces.open-api.vn/api/?depth=3')
+            //     .then(res => res.json())
+            //     .then(data => {
+            //         data.forEach(province => {
+            //             const opt = document.createElement("option");
+            //             opt.value = province.name;
+            //             opt.textContent = province.name;
+            //             opt.dataset.code = province.code;
+            //             opt.dataset.districts = JSON.stringify(province.districts);
+            //             provinceSelect.appendChild(opt);
+            //         });
+            //     });
 
-            provinceSelect.addEventListener("change", () => {
-                const selected = provinceSelect.selectedOptions[0];
-                const districts = JSON.parse(selected.dataset.districts || "[]");
+            // provinceSelect.addEventListener("change", () => {
+            //     const selected = provinceSelect.selectedOptions[0];
+            //     const districts = JSON.parse(selected.dataset.districts || "[]");
 
-                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-                wardSelect.disabled = true;
+            //     districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            //     wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            //     wardSelect.disabled = true;
 
-                if (districts.length) {
-                    districtSelect.disabled = false;
-                    districts.forEach(d => {
-                        const opt = document.createElement("option");
-                        opt.value = d.name;
-                        opt.textContent = d.name;
-                        opt.dataset.wards = JSON.stringify(d.wards);
-                        districtSelect.appendChild(opt);
-                    });
-                } else {
-                    districtSelect.disabled = true;
-                }
-            });
+            //     if (districts.length) {
+            //         districtSelect.disabled = false;
+            //         districts.forEach(d => {
+            //             const opt = document.createElement("option");
+            //             opt.value = d.name;
+            //             opt.textContent = d.name;
+            //             opt.dataset.wards = JSON.stringify(d.wards);
+            //             districtSelect.appendChild(opt);
+            //         });
+            //     } else {
+            //         districtSelect.disabled = true;
+            //     }
+            // });
 
-            districtSelect.addEventListener("change", () => {
-                const selected = districtSelect.selectedOptions[0];
-                const wards = JSON.parse(selected.dataset.wards || "[]");
+            // districtSelect.addEventListener("change", () => {
+            //     const selected = districtSelect.selectedOptions[0];
+            //     const wards = JSON.parse(selected.dataset.wards || "[]");
 
-                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-                if (wards.length) {
-                    wardSelect.disabled = false;
-                    wards.forEach(w => {
-                        const opt = document.createElement("option");
-                        opt.value = w.name;
-                        opt.textContent = w.name;
-                        wardSelect.appendChild(opt);
-                    });
-                } else {
-                    wardSelect.disabled = true;
-                }
-            });
+            //     wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            //     if (wards.length) {
+            //         wardSelect.disabled = false;
+            //         wards.forEach(w => {
+            //             const opt = document.createElement("option");
+            //             opt.value = w.name;
+            //             opt.textContent = w.name;
+            //             wardSelect.appendChild(opt);
+            //         });
+            //     } else {
+            //         wardSelect.disabled = true;
+            //     }
+            // });
         });
 
         document.getElementById("close-popup-form").addEventListener("click", () => {
