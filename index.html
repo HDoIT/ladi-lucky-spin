@@ -712,7 +712,7 @@
 
             // API functions
             async function saveUserToGoogleSheet(data) {
-                const response = await fetch("https://script.google.com/macros/s/AKfycbyEBohsF4LXRZMmB7sS-NcF4w8v-S-cAiOdOjGZhYMs-eGvpyroQaniEGa4C28TseXs/exec", {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbz73ItEmVu_nbz-_Ja2_2jdtFZu-ZSESFzoR0cdrvsfmiuQa-2WxdOSbAoPO5prLYbT/exec", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
@@ -724,7 +724,7 @@
             }
 
             async function updatePrizeInGoogleSheet(phone, prize) {
-                await fetch("https://script.google.com/macros/s/AKfycbyEBohsF4LXRZMmB7sS-NcF4w8v-S-cAiOdOjGZhYMs-eGvpyroQaniEGa4C28TseXs/exec", {
+                await fetch("https://script.google.com/macros/s/AKfycbz73ItEmVu_nbz-_Ja2_2jdtFZu-ZSESFzoR0cdrvsfmiuQa-2WxdOSbAoPO5prLYbT/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "updatePrize", phone, prize }),
                     headers: { "Content-Type": "application/x-www-form-urlencoded" }
